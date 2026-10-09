@@ -981,3 +981,1002 @@
 </script>
 </body>
 </html>
+<a href="about.html">Go to the second page</a>
+<a href="about.html"><button>Click to go to second page</button></a>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Tokens ---------- */
+  :root{
+    --bg:#f4f4f4;
+    --surface:#ffffff;
+    --surface-2:#fafafa;
+    --ink:#111111;
+    --muted:#666666;
+    --faint:#9a9a9a;
+    --line:#e3e3e3;
+    --line-strong:#cfcfcf;
+    --shadow:0 1px 2px rgba(0,0,0,.05), 0 12px 32px -12px rgba(0,0,0,.14);
+    --radius:18px;
+    --radius-sm:11px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  html[data-theme="dark"]{
+    --bg:#0e0e0e;
+    --surface:#1a1a1a;
+    --surface-2:#202020;
+    --ink:#f1f1f1;
+    --muted:#a3a3a3;
+    --faint:#6f6f6f;
+    --line:#2b2b2b;
+    --line-strong:#3a3a3a;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -14px rgba(0,0,0,.6);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Google Sans','Roboto',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  button,input,textarea,select{font:inherit;color:inherit;}
+  button{cursor:pointer;}
+  svg{display:block;}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px;}
+
+  /* ---------- Layout ---------- */
+  .app{
+    max-width:1080px;
+    margin:0 auto;
+    padding:28px 24px 40px;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;margin-bottom:24px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand .logo{width:34px;height:34px;color:var(--ink);flex:none;}
+  .brand-name{font-size:19px;font-weight:500;letter-spacing:-.01em;}
+  .header-actions{display:flex;gap:8px;}
+
+  main{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:start;flex:1;}
+
+  /* ---------- Buttons ---------- */
+  .icon-btn{
+    width:40px;height:40px;display:grid;place-items:center;
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+    color:var(--ink);
+    transition:background .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease);
+  }
+  .icon-btn:hover{border-color:var(--line-strong);transform:translateY(-1px);}
+  .icon-btn svg{width:19px;height:19px;}
+
+  .btn{
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    border-radius:999px;padding:9px 18px;font-size:14px;font-weight:500;
+    transition:background .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease),opacity .18s var(--ease);
+  }
+  .btn:hover{border-color:var(--line-strong);transform:translateY(-1px);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .btn.primary{
+    background:var(--ink);color:var(--surface);border-color:var(--ink);
+    padding:13px 24px;font-size:15px;
+  }
+  .btn.primary:hover{opacity:.87;}
+  .btn.sm{padding:6px 13px;font-size:13px;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .panel{padding:20px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-head h2{margin:0;font-size:15px;font-weight:500;letter-spacing:-.005em;}
+  .panel-head .count{font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums;}
+
+  /* ---------- Sidebar: decks ---------- */
+  .side{display:flex;flex-direction:column;gap:20px;}
+  .deck-list{list-style:none;margin:0;padding:0;}
+  .deck-item{
+    display:flex;align-items:center;gap:10px;
+    padding:9px 10px;border-radius:var(--radius-sm);
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:background .16s var(--ease),border-color .16s var(--ease);
+  }
+  .deck-item:hover{background:var(--surface-2);}
+  .deck-item.active{background:var(--surface-2);border-color:var(--line-strong);}
+  .deck-check{
+    width:17px;height:17px;flex:none;border-radius:5px;
+    border:1.5px solid var(--line-strong);background:transparent;
+    display:grid;place-items:center;
+    transition:border-color .16s var(--ease),background .16s var(--ease);
+  }
+  .deck-check.on{background:var(--ink);border-color:var(--ink);}
+  .deck-check svg{width:11px;height:11px;color:var(--surface);opacity:0;}
+  .deck-check.on svg{opacity:1;}
+  .deck-name{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:none;border:0;padding:0;text-align:left;}
+  .deck-name:hover{color:var(--ink);}
+  .deck-n{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;}
+  .deck-del{
+    width:26px;height:26px;flex:none;border:0;background:transparent;border-radius:7px;
+    color:var(--faint);display:grid;place-items:center;opacity:0;
+    transition:opacity .16s var(--ease),color .16s var(--ease),background .16s var(--ease);
+  }
+  .deck-item:hover .deck-del,.deck-del:focus-visible{opacity:1;}
+  .deck-del:hover{color:var(--ink);background:var(--surface);}
+  .deck-del svg{width:13px;height:13px;}
+
+  .new-deck-row{display:flex;gap:8px;margin-top:12px;}
+  .new-deck-row input{
+    flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);padding:8px 11px;font-size:13.5px;
+  }
+  .new-deck-row input:focus{outline:none;border-color:var(--ink);}
+  .new-deck-row input::placeholder{color:var(--faint);}
+  .add-btn{
+    width:36px;height:36px;flex:none;border:1px solid var(--line);background:var(--surface);
+    border-radius:var(--radius-sm);color:var(--ink);display:grid;place-items:center;
+    transition:border-color .18s var(--ease),transform .18s var(--ease);
+  }
+  .add-btn:hover{border-color:var(--line-strong);transform:translateY(-1px);}
+  .add-btn svg{width:16px;height:16px;}
+
+  .mix-box{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .mix-box .hint{font-size:12.5px;color:var(--faint);margin:0 0 10px;}
+  .mix-btn{width:100%;}
+
+  /* ---------- Study area ---------- */
+  .study-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .study-title{font-size:15px;font-weight:500;}
+  .study-sub{font-size:12.5px;color:var(--faint);margin-top:1px;}
+  .seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;}
+  .seg button{
+    border:0;background:transparent;padding:7px 15px;border-radius:999px;
+    font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap;
+    transition:color .18s var(--ease),background .18s var(--ease);
+  }
+  .seg button:hover{color:var(--ink);}
+  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.09);}
+
+  .flashcard{
+    position:relative;width:100%;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    min-height:260px;padding:34px 34px 26px;
+    display:flex;flex-direction:column;
+    cursor:pointer;
+    transition:border-color .18s var(--ease);
+  }
+  .flashcard:hover{border-color:var(--line-strong);}
+  .fc-mode{position:absolute;top:16px;right:18px;font-size:11.5px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;}
+  .fc-tag{position:absolute;top:16px;left:18px;font-size:11.5px;color:var(--faint);}
+  .fc-body{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px 8px;}
+  .fc-text{font-size:27px;font-weight:500;letter-spacing:-.02em;line-height:1.32;max-width:34ch;}
+  .fc-hint{font-size:12.5px;color:var(--faint);text-align:center;}
+  .fc-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:18px;}
+  .round-btn{
+    width:48px;height:48px;border-radius:50%;
+    border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    display:grid;place-items:center;
+    transition:background .18s var(--ease),border-color .18s var(--ease),transform .18s var(--ease);
+  }
+  .round-btn:hover{border-color:var(--line-strong);transform:translateY(-1px);}
+  .round-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+  .round-btn svg{width:19px;height:19px;}
+  .fc-pager{display:flex;gap:6px;}
+  .fc-pager i{width:7px;height:7px;border-radius:50%;background:var(--line-strong);transition:background .25s var(--ease),transform .25s var(--ease);}
+  .fc-pager i.on{background:var(--ink);transform:scale(1.25);}
+  .grade-row{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+  .grade-row .btn{min-width:96px;font-size:13.5px;}
+
+  .empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    min-height:260px;color:var(--faint);text-align:center;padding:24px;
+  }
+  .empty svg{width:44px;height:44px;color:var(--line-strong);}
+  .empty p{margin:0;font-size:14px;max-width:32ch;}
+
+  /* ---------- Card list ---------- */
+  .list-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .list-toolbar input{
+    flex:1;min-width:150px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);padding:8px 12px;font-size:13.5px;
+  }
+  .list-toolbar input:focus{outline:none;border-color:var(--ink);}
+  .list-toolbar input::placeholder{color:var(--faint);}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;font-weight:500;font-size:11.5px;color:var(--faint);
+    text-transform:uppercase;letter-spacing:.06em;
+    padding:0 10px 9px;border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:0;}
+  tbody tr{transition:background .14s var(--ease);}
+  tbody tr:hover{background:var(--surface-2);}
+  .cell-f{min-width:150px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cell-b{min-width:150px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);}
+  .cell-deck{white-space:nowrap;color:var(--muted);font-size:12.5px;}
+  .row-del{
+    width:26px;height:26px;border:0;background:transparent;border-radius:7px;
+    color:var(--faint);display:grid;place-items:center;
+    opacity:0;transition:opacity .16s var(--ease),color .16s var(--ease),background .16s var(--ease);
+  }
+  tr:hover .row-del,.row-del:focus-visible{opacity:1;}
+  .row-del:hover{color:var(--ink);background:var(--surface-2);}
+  .row-del svg{width:13px;height:13px;}
+
+  footer{margin-top:28px;text-align:center;font-size:12.5px;color:var(--faint);}
+  footer kbd{
+    font-family:inherit;font-size:11.5px;background:var(--surface);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;color:var(--muted);
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.32);
+    display:grid;place-items:center;padding:20px;
+    opacity:0;pointer-events:none;transition:opacity .2s var(--ease);
+  }
+  .overlay.open{opacity:1;pointer-events:auto;}
+  .modal{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);width:min(560px,100%);padding:24px;
+    transform:translateY(8px) scale(.985);transition:transform .22s var(--ease);
+    max-height:90vh;overflow-y:auto;
+  }
+  .overlay.open .modal{transform:translateY(0) scale(1);}
+  .modal h2{margin:0 0 4px;font-size:18px;font-weight:500;letter-spacing:-.01em;}
+  .modal .sub{margin:0 0 18px;font-size:13px;color:var(--muted);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;}
+  .field input,.field textarea,.field select{
+    width:100%;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;
+  }
+  .field textarea{min-height:88px;resize:vertical;line-height:1.55;}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--ink);}
+  .field .tip{font-size:12px;color:var(--faint);margin:5px 0 0;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  .switch{position:relative;width:44px;height:26px;flex:none;display:inline-block;}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  .switch .track{position:absolute;inset:0;border-radius:999px;background:var(--line-strong);transition:background .22s var(--ease);}
+  .switch .knob{
+    position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .22s var(--ease);
+  }
+  .switch input:checked ~ .track{background:var(--ink);}
+  .switch input:checked ~ .knob{transform:translateX(18px);}
+  .switch input:focus-visible ~ .track{outline:2px solid var(--ink);outline-offset:2px;}
+  .setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;}
+  .setting-row .label{font-size:14px;}
+  .setting-row .label small{display:block;font-size:12px;color:var(--faint);}
+
+  @media (max-width:900px){
+    main{grid-template-columns:1fr;}
+    .app{padding:20px 16px 32px;}
+    header{margin-bottom:20px;}
+    .fc-text{font-size:23px;}
+    .flashcard{padding:30px 22px 22px;}
+  }
+  @media (max-width:520px){
+    .brand-name{font-size:17px;}
+    .fc-text{font-size:20px;}
+    .grade-row .btn{min-width:78px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="3.4" y="6.4" width="25.2" height="19.2" rx="3.2" stroke="currentColor" stroke-width="2.2"/>
+        <path d="M3.6 12.4h24.8" stroke="currentColor" stroke-width="2"/>
+        <path d="M9.4 6.2V4.2c0-1 .8-1.8 1.8-1.8h9.6c1 0 1.8.8 1.8 1.8v2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M12 18.2h8M16 15.4v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">Flashcards</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle dark theme" title="Toggle theme">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4.2"/>
+          <path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Open settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2.8v2.4M12 18.8v2.4M4.3 7.5l2.1 1.2M17.6 15.3l2.1 1.2M4.3 16.5l2.1-1.2M17.6 8.7l2.1-1.2"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Sidebar -->
+    <aside class="side">
+      <section class="card panel">
+        <div class="panel-head">
+          <h2>Decks</h2>
+          <span class="count" id="deckTotal">0 cards</span>
+        </div>
+        <ul class="deck-list" id="deckList"></ul>
+        <div class="new-deck-row">
+          <input type="text" id="deckNameInput" placeholder="New deck name…" maxlength="60" autocomplete="off" aria-label="New deck name">
+          <button class="add-btn" id="addDeckBtn" aria-label="Add deck">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+        <div class="mix-box">
+          <p class="hint">Tick two or more decks, then mix them into one study session.</p>
+          <button class="btn mix-btn" id="mixBtn" disabled>Mix selected decks</button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Study area -->
+    <section style="display:flex;flex-direction:column;gap:20px;min-width:0;">
+      <div class="card panel">
+        <div class="study-head">
+          <div>
+            <div class="study-title" id="studyTitle">No deck selected</div>
+            <div class="study-sub" id="studySub">Pick a deck from the sidebar to begin</div>
+          </div>
+          <div class="seg" role="group" aria-label="View">
+            <button data-view="study" aria-pressed="true">Study</button>
+            <button data-view="list" aria-pressed="false">Card list</button>
+          </div>
+        </div>
+
+        <!-- Study view -->
+        <div id="studyView">
+          <div class="empty" id="studyEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="14" height="16" rx="2"/>
+              <path d="M7 4V2.8c0-.5.4-.8.8-.8h8.4c.5 0 .8.4.8.8v14.4c0 .5-.4.8-.8.8H16"/>
+            </svg>
+            <p id="studyEmptyText">No deck selected. Choose one from the sidebar, or create a new deck and add cards.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+              <button class="btn sm" id="emptyNewCard">Add a card</button>
+              <button class="btn sm" id="emptyImport">Import as text</button>
+            </div>
+          </div>
+
+          <div id="studyActive" style="display:none;">
+            <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Flip flashcard">
+              <span class="fc-tag" id="fcTag"></span>
+              <span class="fc-mode" id="fcMode">Front</span>
+              <div class="fc-body"><div class="fc-text" id="fcText"></div></div>
+              <div class="fc-hint" id="fcHint">Click or press Space to flip</div>
+            </div>
+            <div class="fc-nav">
+              <button class="round-btn" id="prevBtn" aria-label="Previous card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5.4v13.2L6 12z"/></svg>
+              </button>
+              <div class="fc-pager" id="fcPager"></div>
+              <button class="round-btn" id="nextBtn" aria-label="Next card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.4v13.2L18 12z"/></svg>
+              </button>
+            </div>
+            <div class="grade-row" id="gradeRow">
+              <button class="btn sm" data-grade="1">Again</button>
+              <button class="btn sm" data-grade="2">Hard</button>
+              <button class="btn sm" data-grade="3">Good</button>
+              <button class="btn sm" data-grade="4">Easy</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- List view -->
+        <div id="listView" style="display:none;">
+          <div class="list-toolbar">
+            <input type="text" id="searchInput" placeholder="Search front or back…" autocomplete="off" aria-label="Search cards">
+            <button class="btn sm" id="newCardBtn">New card</button>
+            <button class="btn sm" id="importBtn">Import as text</button>
+            <button class="btn sm" id="exportBtn">Export</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Front</th><th>Back</th><th>Deck</th><th></th></tr></thead>
+              <tbody id="cardRows"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="listEmpty" style="margin:14px 0 0;font-size:13.5px;color:var(--faint);"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <kbd>Space</kbd> flip &nbsp;·&nbsp; <kbd>←</kbd> <kbd>→</kbd> navigate &nbsp;·&nbsp; <kbd>1</kbd>–<kbd>4</kbd> grade
+  </footer>
+</div>
+
+<!-- New card modal -->
+<div class="overlay" id="cardOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cardModalTitle">
+    <h2 id="cardModalTitle">New card</h2>
+    <p class="sub">Cards live in a deck and appear under its heading in the list.</p>
+    <div class="field">
+      <label for="cardDeck">Deck</label>
+      <select id="cardDeck"></select>
+    </div>
+    <div class="field">
+      <label for="cardFront">Front</label>
+      <textarea id="cardFront" placeholder="The question or prompt" maxlength="600"></textarea>
+    </div>
+    <div class="field">
+      <label for="cardBack">Back</label>
+      <textarea id="cardBack" placeholder="The answer" maxlength="1200"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="cardCancel">Cancel</button>
+      <button class="btn primary" id="cardSave">Save card</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="overlay" id="importOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+    <h2 id="importModalTitle">Import as text</h2>
+    <p class="sub">One card per line, front and back separated by a tab or a vertical bar. Blank lines are ignored.</p>
+    <div class="field">
+      <label for="importDeck">Import into deck</label>
+      <select id="importDeck"></select>
+    </div>
+    <div class="field">
+      <label for="importText">Cards</label>
+      <textarea id="importText" placeholder="Capital of France	Paris&#10;2 + 2	4" style="min-height:170px;" spellcheck="false"></textarea>
+      <p class="tip" id="importPreview">0 cards detected</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="importCancel">Cancel</button>
+      <button class="btn primary" id="importSave">Import cards</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <h2 id="settingsTitle">Settings</h2>
+    <p class="sub">Study behaviour and data.</p>
+    <div class="setting-row">
+      <div class="label">Shuffle session<small>Randomise card order when studying</small></div>
+      <label class="switch"><input type="checkbox" id="shuffleToggle"><span class="track"></span><span class="knob"></span></label>
+    </div>
+    <div class="setting-row">
+      <div class="label">Start on front<small>Show the front first when a session opens</small></div>
+      <label class="switch"><input type="checkbox" id="frontFirstToggle"><span class="track"></span><span class="knob"></span></label>
+    </div>
+    <div class="setting-row">
+      <div class="label">Reset scheduling<small>Clear all review intervals and due times</small></div>
+      <button class="btn sm" id="resetSrs">Reset</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="closeSettings">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ---------------- Persistence ---------------- */
+  const LS = { decks:'flashcards.decks.v1', settings:'flashcards.settings.v1' };
+  const load = (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch(e){ return fb; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+
+  const uid = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+  const DEFAULT_SETTINGS = { theme:'light', shuffle:true, frontFirst:true };
+  let settings = Object.assign({}, DEFAULT_SETTINGS, load(LS.settings, {}));
+
+  /** decks: [{ id, name, cards: [{ id, front, back, srs:{ease,ivl,reps,due} }] }] */
+  let decks = load(LS.decks, []);
+  if (!Array.isArray(decks)) decks = [];
+  decks.forEach(d => { d.cards = Array.isArray(d.cards) ? d.cards : []; });
+
+  /* ---------------- SRS (Anki-style SM-2, simplified) ---------------- */
+  const DAY = 86400000;
+  const srsInit = () => ({ ease:2.5, ivl:0, reps:0, due:Date.now() });
+
+  // grade: 1 again, 2 hard, 3 good, 4 easy
+  function srsUpdate(card, grade){
+    const s = card.srs || (card.srs = srsInit());
+    if (grade === 1){
+      s.reps = 0; s.ivl = 0; s.due = Date.now();      // relearn now
+      return;
+    }
+    s.reps += 1;
+    if (grade === 2)      s.ease = Math.max(1.3, s.ease - 0.2);
+    else if (grade === 4) s.ease = Math.max(1.3, s.ease + 0.15);
+    let ivl;
+    if (s.reps === 1)      ivl = grade === 4 ? 4 : 1;
+    else if (s.reps === 2) ivl = grade === 4 ? 6 : 3;
+    else                   ivl = Math.max(1, Math.round(s.ivl * s.ease * (grade === 4 ? 1.3 : grade === 2 ? 0.7 : 1)));
+    s.ivl = ivl;
+    s.due = Date.now() + ivl * DAY;
+  }
+
+  /* ---------------- Selection state ---------------- */
+  let activeDeckId = null;         // single deck shown in sidebar highlight / list
+  let selectedDeckIds = new Set(); // ticked decks for mixing
+  let mixed = null;                // { title, deckIds, cards:[{deckId,cardId}] } when studying a mix
+  let cursor = 0;                  // index into current study queue
+  let showingFront = true;
+
+  const deckById = id => decks.find(d => d.id === id) || null;
+
+  function currentQueue(){
+    if (mixed) return mixed.cards;
+    const d = deckById(activeDeckId);
+    return d ? d.cards.map(c => ({ deckId:d.id, cardId:c.id })) : [];
+  }
+  function studyTitle(){
+    if (mixed) return mixed.title;
+    const d = deckById(activeDeckId);
+    return d ? d.name : 'No deck selected';
+  }
+  function resolve(ref){
+    const d = deckById(ref.deckId);
+    return d ? d.cards.find(c => c.id === ref.cardId) || null : null;
+  }
+
+  /* ---------------- DOM ---------------- */
+  const $ = id => document.getElementById(id);
+  const els = {
+    deckList:$('deckList'), deckTotal:$('deckTotal'),
+    studyTitle:$('studyTitle'), studySub:$('studySub'),
+    studyEmpty:$('studyEmpty'), studyEmptyText:$('studyEmptyText'),
+    studyActive:$('studyActive'),
+    flashcard:$('flashcard'), fcTag:$('fcTag'), fcMode:$('fcMode'),
+    fcText:$('fcText'), fcHint:$('fcHint'),
+    prevBtn:$('prevBtn'), nextBtn:$('nextBtn'), fcPager:$('fcPager'),
+    gradeRow:$('gradeRow'), mixBtn:$('mixBtn'),
+    cardRows:$('cardRows'), listEmpty:$('listEmpty'), searchInput:$('searchInput'),
+    cardOverlay:$('cardOverlay'), importOverlay:$('importOverlay'), settingsOverlay:$('settingsOverlay'),
+    themeIcon:$('themeIcon')
+  };
+
+  /* ---------------- Rendering ---------------- */
+  function renderDecks(){
+    els.deckList.innerHTML = '';
+    const total = decks.reduce((n,d) => n + d.cards.length, 0);
+    els.deckTotal.textContent = total + (total === 1 ? ' card' : ' cards');
+
+    if (!decks.length){
+      const li = document.createElement('li');
+      li.className = 'hint';
+      li.style.cssText = 'font-size:13px;color:var(--faint);padding:8px 10px;margin:0;';
+      li.textContent = 'No decks yet. Name one above to get started.';
+      els.deckList.appendChild(li);
+      return;
+    }
+
+    decks.forEach(d => {
+      const li = document.createElement('li');
+      li.className = 'deck-item' + (d.id === activeDeckId && !mixed ? ' active' : '');
+
+      const check = document.createElement('span');
+      check.className = 'deck-check' + (selectedDeckIds.has(d.id) ? ' on' : '');
+      check.setAttribute('role','checkbox');
+      check.setAttribute('aria-checked', String(selectedDeckIds.has(d.id)));
+      check.setAttribute('aria-label','Select deck ' + d.name);
+      check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+      check.addEventListener('click', e => {
+        e.stopPropagation();
+        if (selectedDeckIds.has(d.id)) selectedDeckIds.delete(d.id); else selectedDeckIds.add(d.id);
+        renderDecks();
+        renderMixBtn();
+      });
+
+      const name = document.createElement('button');
+      name.className = 'deck-name';
+      name.type = 'button';
+      name.textContent = d.name;
+      name.title = d.name;
+      name.addEventListener('click', () => selectDeck(d.id));
+
+      const n = document.createElement('span');
+      n.className = 'deck-n';
+      n.textContent = d.cards.length;
+
+      const del = document.createElement('button');
+      del.className = 'deck-del';
+      del.type = 'button';
+      del.setAttribute('aria-label','Delete deck ' + d.name);
+      del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm('Delete deck "' + d.name + '" and its ' + d.cards.length + ' card(s)?')) return;
+        decks = decks.filter(x => x.id !== d.id);
+        selectedDeckIds.delete(d.id);
+        if (activeDeckId === d.id) activeDeckId = decks.length ? decks[0].id : null;
+        if (mixed && mixed.deckIds.includes(d.id)) mixed = null;
+        persist(); renderAll();
+      });
+
+      li.append(check, name, n, del);
+      els.deckList.appendChild(li);
+    });
+  }
+
+  function renderStudy(){
+    const queue = currentQueue();
+    const has = queue.length > 0;
+    els.studyEmpty.style.display = has ? 'none' : 'flex';
+    els.studyActive.style.display = has ? 'block' : 'none';
+    els.studyTitle.textContent = studyTitle();
+    els.studySub.textContent = has
+      ? (mixed ? queue.length + ' cards from ' + mixed.deckIds.length + ' decks' : queue.length + (queue.length === 1 ? ' card' : ' cards'))
+      : 'Pick a deck from the sidebar to begin';
+    els.studyEmptyText.textContent = decks.length
+      ? 'This deck is empty. Add a card or import text to start studying.'
+      : 'No deck selected. Choose one from the sidebar, or create a new deck and add cards.';
+
+    if (!has) return;
+    cursor = Math.min(cursor, queue.length - 1);
+    renderCard();
+  }
+
+  function renderCard(){
+    const queue = currentQueue();
+    const ref = queue[cursor];
+    const card = resolve(ref);
+    if (!card) return;
+    const d = deckById(ref.deckId);
+
+    els.fcTag.textContent = d ? d.name : '';
+    els.fcText.textContent = showingFront ? card.front : card.back;
+    els.fcMode.textContent = showingFront ? 'Front' : 'Back';
+    els.fcHint.textContent = showingFront ? 'Click or press Space to flip' : 'Grade your recall below';
+
+    els.prevBtn.disabled = cursor === 0;
+    els.nextBtn.disabled = cursor === queue.length - 1;
+    els.gradeRow.style.display = showingFront ? 'none' : 'flex';
+
+    els.fcPager.innerHTML = '';
+    queue.forEach((_, i) => {
+      const dot = document.createElement('i');
+      if (i === cursor) dot.className = 'on';
+      els.fcPager.appendChild(dot);
+    });
+  }
+
+  function renderList(){
+    const rows = els.cardRows;
+    rows.innerHTML = '';
+    const q = els.searchInput.value.trim().toLowerCase();
+    let shown = 0;
+    decks.forEach(d => {
+      if (activeDeckId && d.id !== activeDeckId) return;
+      d.cards.forEach(c => {
+        if (q && !(c.front.toLowerCase().includes(q) || c.back.toLowerCase().includes(q))) return;
+        shown++;
+        const tr = document.createElement('tr');
+
+        const tdF = document.createElement('td');
+        tdF.className = 'cell-f';
+        tdF.textContent = c.front;
+        tdF.title = c.front;
+
+        const tdB = document.createElement('td');
+        tdB.className = 'cell-b';
+        tdB.textContent = c.back;
+        tdB.title = c.back;
+
+        const tdD = document.createElement('td');
+        tdD.className = 'cell-deck';
+        tdD.textContent = d.name;
+
+        const tdA = document.createElement('td');
+        tdA.style.textAlign = 'right';
+        const del = document.createElement('button');
+        del.className = 'row-del';
+        del.type = 'button';
+        del.setAttribute('aria-label','Delete card');
+        del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+        del.addEventListener('click', () => {
+          d.cards = d.cards.filter(x => x.id !== c.id);
+          persist(); renderAll();
+        });
+        tdA.appendChild(del);
+
+        tr.append(tdF, tdB, tdD, tdA);
+        rows.appendChild(tr);
+      });
+    });
+    els.listEmpty.textContent = shown ? '' : (decks.length ? 'No cards match your search.' : 'No cards yet. Add one or import as text.');
+  }
+
+  function renderMixBtn(){
+    els.mixBtn.disabled = selectedDeckIds.size < 2;
+    els.mixBtn.textContent = selectedDeckIds.size < 2
+      ? 'Mix selected decks'
+      : 'Mix ' + selectedDeckIds.size + ' decks (' +
+          decks.filter(d => selectedDeckIds.has(d.id)).reduce((n,d) => n + d.cards.length, 0) + ' cards)';
+  }
+
+  function renderAll(){ renderDecks(); renderStudy(); renderList(); renderMixBtn(); }
+  function persist(){ save(LS.decks, decks); save(LS.settings, settings); }
+
+  /* ---------------- Deck actions ---------------- */
+  function addDeck(name){
+    name = (name || '').trim();
+    if (!name) return null;
+    const d = { id:'d' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), name, cards:[] };
+    decks.push(d);
+    persist();
+    return d;
+  }
+  function selectDeck(id){
+    mixed = null;
+    activeDeckId = id;
+    cursor = 0;
+    showingFront = settings.frontFirst;
+    renderAll();
+  }
+
+  $('addDeckBtn').addEventListener('click', () => {
+    const d = addDeck($('deckNameInput').value);
+    if (!d) return;
+    $('deckNameInput').value = '';
+    activeDeckId = d.id; mixed = null; cursor = 0;
+    renderAll();
+  });
+  $('deckNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('addDeckBtn').click(); });
+
+  $('mixBtn').addEventListener('click', () => {
+    const picked = decks.filter(d => selectedDeckIds.has(d.id));
+    if (picked.length < 2) return;
+    let cards = [];
+    picked.forEach(d => d.cards.forEach(c => cards.push({ deckId:d.id, cardId:c.id })));
+    if (!cards.length){ alert('The selected decks have no cards to mix.'); return; }
+    if (settings.shuffle){
+      for (let i = cards.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+    }
+    mixed = { title:'Mixed: ' + picked.map(d => d.name).join(' + '), deckIds:picked.map(d => d.id), cards };
+    cursor = 0;
+    showingFront = settings.frontFirst;
+    setView('study');
+    renderAll();
+  });
+
+  /* ---------------- Card modal ---------------- */
+  function fillDeckSelect(select){
+    select.innerHTML = '';
+    decks.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = d.name;
+      select.appendChild(o);
+    });
+  }
+  function openCardModal(){
+    if (!decks.length){
+      const starter = addDeck('General');
+      activeDeckId = starter.id;
+    }
+    fillDeckSelect($('cardDeck'));
+    $('cardDeck').value = activeDeckId || decks[0].id;
+    $('cardFront').value = '';
+    $('cardBack').value = '';
+    $('cardModalTitle').textContent = 'New card';
+    els.cardOverlay.classList.add('open');
+    setTimeout(() => $('cardFront').focus(), 60);
+  }
+  function closeCardModal(){ els.cardOverlay.classList.remove('open'); }
+
+  $('newCardBtn').addEventListener('click', openCardModal);
+  $('emptyNewCard').addEventListener('click', openCardModal);
+  $('cardCancel').addEventListener('click', closeCardModal);
+  els.cardOverlay.addEventListener('click', e => { if (e.target === els.cardOverlay) closeCardModal(); });
+
+  $('cardSave').addEventListener('click', () => {
+    const front = $('cardFront').value.trim();
+    const back = $('cardBack').value.trim();
+    const deckId = $('cardDeck').value;
+    if (!front || !back){ alert('Both front and back are required.'); return; }
+    const d = deckById(deckId);
+    if (!d) return;
+    d.cards.push({ id:uid(), front, back, srs:srsInit() });
+    activeDeckId = d.id; mixed = null; cursor = 0;
+    persist(); closeCardModal(); renderAll();
+  });
+
+  /* ---------------- Import ---------------- */
+  function parseImport(text){
+    return text.split('\n').map(l => l.replace(/\r$/, ''))
+      .filter(l => l.trim().length)
+      .map(l => {
+        const i = l.indexOf('\t');
+        if (i > -1) return { front:l.slice(0,i).trim(), back:l.slice(i+1).trim() };
+        const j = l.indexOf('|');
+        if (j > -1) return { front:l.slice(0,j).trim(), back:l.slice(j+1).trim() };
+        return null;
+      })
+      .filter(p => p && p.front && p.back);
+  }
+  function openImport(){
+    if (!decks.length){
+      const starter = addDeck('General');
+      activeDeckId = starter.id;
+    }
+    fillDeckSelect($('importDeck'));
+    $('importDeck').value = activeDeckId || decks[0].value;
+    $('importText').value = '';
+    updateImportPreview();
+    els.importOverlay.classList.add('open');
+    setTimeout(() => $('importText').focus(), 60);
+  }
+  function updateImportPreview(){
+    const n = parseImport($('importText').value).length;
+    $('importPreview').textContent = n + (n === 1 ? ' card' : ' cards') + ' detected';
+  }
+  $('importText').addEventListener('input', updateImportPreview);
+  $('importBtn').addEventListener('click', openImport);
+  $('emptyImport').addEventListener('click', openImport);
+  $('importCancel').addEventListener('click', () => els.importOverlay.classList.remove('open'));
+  els.importOverlay.addEventListener('click', e => { if (e.target === els.importOverlay) els.importOverlay.classList.remove('open'); });
+
+  $('importSave').addEventListener('click', () => {
+    const parsed = parseImport($('importText').value);
+    if (!parsed.length){ alert('No valid cards found. Use one card per line, front and back separated by a tab or |'); return; }
+    const d = deckById($('importDeck').value);
+    if (!d) return;
+    parsed.forEach(p => d.cards.push({ id:uid(), front:p.front, back:p.back, srs:srsInit() }));
+    activeDeckId = d.id; mixed = null; cursor = 0;
+    persist(); els.importOverlay.classList.remove('open'); renderAll();
+  });
+
+  /* ---------------- Export ---------------- */
+  $('exportBtn').addEventListener('click', () => {
+    const scope = decks.filter(d => !activeDeckId || d.id === activeDeckId);
+    const lines = [];
+    scope.forEach(d => d.cards.forEach(c => lines.push(c.front + '\t' + c.back)));
+    if (!lines.length){ alert('Nothing to export yet.'); return; }
+    const blob = new Blob([lines.join('\n')], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (scope.length === 1 ? scope[0].name : 'flashcards') + '.txt';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  /* ---------------- Study interaction ---------------- */
+  function flip(){
+    showingFront = !showingFront;
+    renderCard();
+  }
+  function go(delta){
+    const queue = currentQueue();
+    const next = cursor + delta;
+    if (next < 0 || next >= queue.length) return;
+    cursor = next;
+    showingFront = settings.frontFirst;
+    renderCard();
+  }
+  els.flashcard.addEventListener('click', flip);
+  els.flashcard.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); flip(); }
+  });
+  $('prevBtn').addEventListener('click', () => go(-1));
+  $('nextBtn').addEventListener('click', () => go(1));
+
+  els.gradeRow.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      const queue = currentQueue();
+      const card = resolve(queue[cursor]);
+      if (!card) return;
+      srsUpdate(card, Number(b.dataset.grade));
+      persist();
+      if (cursor < queue.length - 1) go(1); else { showingFront = settings.frontFirst; renderCard(); }
+    });
+  });
+
+  els.searchInput.addEventListener('input', renderList);
+
+  /* ---------------- Views / settings / theme ---------------- */
+  function setView(v){
+    $('studyView').style.display = v === 'study' ? 'block' : 'none';
+    $('listView').style.display = v === 'list' ? 'block' : 'none';
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+  }
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+
+  function applyTheme(){
+    document.documentElement.setAttribute('data-theme', settings.theme);
+    els.themeIcon.innerHTML = settings.theme === 'dark'
+      ? '<path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5 8.6 8.6 0 1 0 20.5 14.6z"/>'
+      : '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/>';
+  }
+  $('themeBtn').addEventListener('click', () => {
+    settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(); persist();
+  });
+
+  $('settingsBtn').addEventListener('click', () => {
+    $('shuffleToggle').checked = settings.shuffle;
+    $('frontFirstToggle').checked = settings.frontFirst;
+    els.settingsOverlay.classList.add('open');
+  });
+  $('closeSettings').addEventListener('click', () => els.settingsOverlay.classList.remove('open'));
+  els.settingsOverlay.addEventListener('click', e => { if (e.target === els.settingsOverlay) els.settingsOverlay.classList.remove('open'); });
+
+  $('shuffleToggle').addEventListener('change', e => { settings.shuffle = e.target.checked; persist(); });
+  $('frontFirstToggle').addEventListener('change', e => { settings.frontFirst = e.target.checked; persist(); });
+  $('resetSrs').addEventListener('click', () => {
+    if (!confirm('Reset review intervals for all cards?')) return;
+    decks.forEach(d => d.cards.forEach(c => c.srs = srsInit()));
+    persist(); renderAll();
+  });
+
+  document.addEventListener('keydown', e => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (els.cardOverlay.classList.contains('open') || els.importOverlay.classList.contains('open') || els.settingsOverlay.classList.contains('open')) return;
+    if (!currentQueue().length) return;
+    if (e.key === ' '){ e.preventDefault(); flip(); }
+    else if (e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); }
+    else if (e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
+    else if (['1','2','3','4'].includes(e.key) && !showingFront){
+      const btn = els.gradeRow.querySelector('button[data-grade="' + e.key + '"]');
+      if (btn) btn.click();
+    }
+  });
+
+  /* ---------------- Seed on first run ---------------- */
+  function seed(){
+    if (localStorage.getItem(LS.decks) !== null) return; // only on very first visit
+    const capitals = addDeck('Capitals');
+    [
+      ['Capital of France','Paris'],
+      ['Capital of Japan','Tokyo'],
+      ['Capital of Australia','Canberra'],
+      ['Capital of Canada','Ottawa']
+    ].forEach(pair => capitals.cards.push({ id:uid(), front:pair[0], back:pair[1], srs:srsInit() }));
+
+    const maths = addDeck('Maths');
+    [
+      ['2 + 2','4'],
+      ['6 x 7','42'],
+      ['Square root of 144','12']
+    ].forEach(pair => maths.cards.push({ id:uid(), front:pair[0], back:pair[1], srs:srsInit() }));
+
+    activeDeckId = capitals.id;
+  }
+
+  /* ---------------- Init ---------------- */
+  seed();
+  if (!activeDeckId && decks.length) activeDeckId = decks[0].id;
+  applyTheme();
+  setView('study');
+  renderAll();
+})();
+</script>
+</body>
+</html>
